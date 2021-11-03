@@ -1,0 +1,59 @@
+### CLEAN ENVIRONMENT to clear memory -----------------######
+## Clears out everything in the environment
+rm(list=ls())
+## Clears out select datasets
+#rm(df)
+
+### Load Pkgs and logs #####
+library(tidyverse)
+library(ggplot2)
+library(maps)
+#library(sf)
+
+### Check working directory pathway
+getwd()
+
+# Load data from R-Proj
+
+UPK_Locations_NYC <- read_csv("Universal_Pre-K__UPK__School_Locations.csv")
+Demo_PublicSchool_NYC <- read_csv("Demographic_Data_in_NYC_Public_Schools_Suppressed_2019_20.csv")
+NTA2020_NYC <- read_csv("2020_Neighborhood_Tabulation_Areas_NTAs_Tabular.csv")
+Broadband_NYC <- read_csv("Broadband_Adoption_Basic_Indicators.csv")
+
+str(Demo_PublicSchool_NYC)
+str(NTA2020_NYC)
+str(UPK_Locations_NYC)
+str(Broadband_NYC)
+
+table(NTA2020_NYC$BoroName, useNA = "always")
+table(UPK_Locations_NYC$Borough, useNA = "always")
+
+# Filter data to SI, NY
+SI_NTA2020 <- NTA2020_NYC %>%
+  filter(BoroName == "Staten Island")
+
+# Join data to map PreK locations with characteristics of the neighborhood (Broadband access; Population diversity, segregation; Median Income etc.)
+PreK_SI_NTA <- UPK_Locations_NYC %>%
+  filter(Borough == "R") %>%
+  left_join(SI_NTA2020, by=c("NTA"="NTAName")) %>%
+  left_join(Broadband_NYC, by=c("NTA"="Neighborhood Tabulation Area Name (NTA NAME)"))
+
+PreK_SI_NTA_1 <- PreK_SI_NTA[c(1:26)]
+
+# Output file as CSV for mapping in Tableau
+write.csv(PreK_SI_NTA_1, file = "/home/bmccabe/NYC Gov Data/Mapping_PreK/PreK_SI_NTA_1.csv",
+          row.names = FALSE)
+
+
+# Review for later use in mapping - when complete SF package readings
+# p <- geom_polygon( data=MainStates, aes(x=long, y=lat, group=group),
+#                    color="black", fill="lightblue" ) +
+#   scale_fill_continuous(name="Population(millions)", 
+#                                low = "lightgreen", high = "darkgreen",limits = c(0,40), 
+#                                breaks=c(5,10,15,20,25,30,35), na.value = "grey50") +
+#   
+#   labs(title="State Population in the Mainland United States")
+# 
+# ggplot(crime_map, aes(x = long, y = lat, group = group, fill = Assault)) +
+#   geom_polygon(colour = "black") +
+#   coord_map("polyconic")
